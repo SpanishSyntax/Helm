@@ -8,6 +8,7 @@
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QQuickWindow>
+#include <QQuickStyle>
 
 #include "themewatcher.hpp"
 #include "utils/cutils.hpp"
@@ -47,6 +48,13 @@
 #endif
 
 int main(int argc, char* argv[]) {
+    // Prevent desktop environment QWidget style overrides (e.g. Adwaita-dark)
+    // from causing Qt Quick Controls to look for non-existent QML style modules.
+    qunsetenv("QT_STYLE_OVERRIDE");
+    if (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE")) {
+        qputenv("QT_QUICK_CONTROLS_STYLE", "Basic");
+    }
+
     Q_INIT_RESOURCE(resources);
     Q_INIT_RESOURCE(schema_resources);
     Q_INIT_RESOURCE(qml_resources);
@@ -102,6 +110,12 @@ int main(int argc, char* argv[]) {
     format.setDepthBufferSize(24);
     format.setStencilBufferSize(8);
     QSurfaceFormat::setDefaultFormat(format);
+
+    // Ensure Qt Quick Controls uses a compatible style (e.g. Basic) and does not
+    // inherit desktop QWidget style overrides like "Adwaita-dark" which are not installed as QML modules.
+    if (qEnvironmentVariableIsEmpty("QT_QUICK_CONTROLS_STYLE")) {
+        QQuickStyle::setStyle(QStringLiteral("Basic"));
+    }
 
     QApplication app(argc, argv);
     app.setApplicationName(QStringLiteral("FlightDeck"));

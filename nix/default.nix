@@ -37,9 +37,13 @@ stdenv.mkDerivation (finalAttrs: {
     "-DFLIGHTDECK_VERSION=1.0.0"
   ];
 
+  qtWrapperArgs = [
+    "--prefix" "PATH" ":" (lib.makeBinPath [ hyprland glib dconf xrdb lua5_4 ])
+    "--set-default" "QT_QUICK_CONTROLS_STYLE" "Basic"
+    "--unset" "QT_STYLE_OVERRIDE"
+  ];
+
   postFixup = ''
-    wrapProgram $out/bin/flightdeck \
-      --prefix PATH : ${lib.makeBinPath [ hyprland glib dconf xrdb lua5_4 ]}
     ln -sf flightdeck $out/bin/helm
   '';
 
