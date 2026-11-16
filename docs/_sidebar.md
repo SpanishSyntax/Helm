@@ -1,0 +1,33 @@
+- **Getting Started**
+  - [Overview](README.md)
+  - [Installation](getting-started.md#installation)
+  - [Nix Flake & Home Manager](getting-started.md#nix-flake--home-manager)
+  - [Arch Linux / AUR](getting-started.md#arch-linux--aur)
+  - [Building from Source](getting-started.md#building-from-source)
+  - [Quick Start](getting-started.md#quick-start)
+
+- **Architecture & Design**
+  - [System Architecture](architecture.md#system-architecture)
+  - [The Lore: Icebreakers & Helm](architecture.md#why-helm--flightdeck-the-lore)
+  - [C++20 & Qt 6 QML Engine](architecture.md#c20--qt-6-qml-engine)
+  - [GPU Blob Shaders](architecture.md#gpu-blob-shaders)
+  - [Hyprland IPC Protocol](architecture.md#hyprland-ipc-protocol)
+  - [Non-Destructive Caelestia Engine](architecture.md#non-destructive-caelestia-engine)
+
+- **Visual Studios & Features**
+  - [Display Layout Studio](usage.md#display-layout-studio)
+  - [Bezier Curve & Velocity Studio](usage.md#bezier-curve--velocity-studio)
+  - [Keybindings Suite & Conflict Detector](usage.md#keybindings-suite--conflict-detector)
+  - [Window & Layer Rules Builder](usage.md#window--layer-rules-builder)
+  - [Autostart & Startup Hooks](usage.md#autostart--startup-hooks)
+  - [Cursor & Theme Watcher](usage.md#cursor--theme-watcher)
+  - [HyprPM Plugin Management](usage.md#hyprpm-plugin-management)
+
+- **CLI & Automation Reference**
+  - [Command Overview](usage.md#cli-command-overview)
+  - [Compositor Reload](usage.md#compositor-reload)
+  - [Getting & Setting Variables](usage.md#getting--setting-variables)
+  - [Profile & Snapshot Automation](usage.md#profile--snapshot-automation)
+  - [Keybinding Inspector CLI](usage.md#keybinding-inspector-cli)
+  - [Compositor Doctor Diagnostics](usage.md#compositor-doctor-diagnostics)
+  - [Plugin CLI Management](usage.md#plugin-cli-management)
