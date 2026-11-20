@@ -8,60 +8,41 @@ Helm (FlightDeck) is engineered with a hybrid architecture combining a high-perf
 
 The following diagram illustrates the data flow, IPC boundaries, and configuration synchronization across Helm and the host desktop environment:
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        User & Compositor Plane                         │
-│                    (Hyprland Wayland Compositor)                       │
-└───────────────────┬────────────────────────────────▲───────────────────┘
-                    │                                │
-    Events Socket   │ (.socket2.sock)                │ IPC Commands (.socket.sock)
-    (workspace,     │                                │ (dispatch, keyword,
-     activewindow)  │                                │  hyprctl monitor...)
-                    ▼                                │
-┌────────────────────────────────────────────────────┴───────────────────┐
-│                      Helm C++20 Core Backend                           │
-│                                                                        │
-│ ┌──────────────────────┐  ┌──────────────────────┐  ┌────────────────┐ │
-│ │  HyprlandSocket      │  │  HyprlandEvents      │  │ HyprlandSchema │ │
-│ │  • UNIX domain sock  │  │  • Async event loop  │  │ • JSON schemas │ │
-│ │  • JSON deserializer │  │  • Threaded dispatch │  │ • Key mappings │ │
-│ └──────────┬───────────┘  └──────────┬───────────┘  └───────┬────────┘ │
-│            │                         │                      │          │
-│ ┌──────────┴─────────────────────────┴──────────────────────┴────────┐ │
-│ │                         Manager Layer                              │ │
-│ │  • MonitorManager     • AnimationManager    • KeybindValidator     │ │
-│ │  • AirlockManager     • AutostartManager    • ProfileManager       │ │
-│ │  • HyprpmManager      • DiagnosticsManager  • CursorManager        │ │
-│ └────────────────────────────────────┬───────────────────────────────┘ │
-│                                      │                                 │
-│ ┌────────────────────────────────────┴───────────────────────────────┐ │
-│ │                    Caelestia Dotfiles Engine                       │ │
-│ │  • FlightDeckWriter (Atomic Lua generator)                         │ │
-│ │  • LuaValidator (Syntax verification & AST safety)                 │ │
-│ │  • ThemeWatcher (Inotify watcher on scheme.json)                   │ │
-│ └────────────────────────────────────┬───────────────────────────────┘ │
-└──────────────────────────────────────┼─────────────────────────────────┘
-                                       │ QML Context Properties & Signals
-                                       ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                        Qt 6 QML & Shader Plane                         │
-│                                                                        │
-│  ┌─────────────────────────┐         ┌───────────────────────────────┐ │
-│  │    Visual Studios       │         │       GPU Blob Shaders        │ │
-│  │ • DisplayLayout.qml     │         │ • blob.vert / blob.frag       │ │
-│  │ • BezierEditor.qml      │         │ • QQuickRhiShaderCode (qsb)   │ │
-│  │ • KeybindsManager.qml   │         │ • Signed distance fields      │ │
-│  │ • RulesManager.qml      │         │ • Dynamic corner radius       │ │
-│  └─────────────────────────┘         └───────────────────────────────┘ │
-└──────────────────────────────────────┬─────────────────────────────────┘
-                                       │ Non-Destructive Lua Overrides
-                                       ▼
-┌────────────────────────────────────────────────────────────────────────┐
-│                 Filesystem Configuration Persistence                   │
-│                                                                        │
-│ ~/.config/caelestia/astra-flightdeck.lua ◄─── (Cleanly sourced by)     │
-│ ~/.config/caelestia/hypr-user.lua        ───► (Passed to Hyprland)     │
-└────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph Compositor["User and Compositor Plane"]
+        Hypr["Hyprland Wayland Compositor"]
+    end
+
+    subgraph Core["Helm C++20 Core Backend"]
+        Sock["HyprlandSocket (.socket.sock JSON RPC)"]
+        Events["HyprlandEvents (.socket2.sock Async Stream)"]
+        Schema["HyprlandSchema (JSON Schemas and Key Mappings)"]
+        Managers["Manager Layer (Monitor, Animation, Keybind, Airlock, Profile, Hyprpm)"]
+        Engine["Caelestia Dotfiles Engine (FlightDeckWriter, LuaValidator, ThemeWatcher)"]
+    end
+
+    subgraph UI["Qt 6 QML and Shader Plane"]
+        Studios["Visual Studios (DisplayLayout, BezierEditor, Keybinds, Rules)"]
+        Shaders["GPU Blob Shaders (blob.vert, blob.frag, QQuickRhiShaderCode)"]
+    end
+
+    subgraph Disk["Filesystem Configuration Persistence"]
+        FlightDeck["~/.config/caelestia/astra-flightdeck.lua"]
+        HyprUser["~/.config/caelestia/hypr-user.lua"]
+    end
+
+    Hypr -->|"Events (.socket2.sock)"| Events
+    Sock -->|"IPC Commands (.socket.sock)"| Hypr
+    Sock --> Managers
+    Events --> Managers
+    Schema --> Managers
+    Managers --> Engine
+    Engine --> Studios
+    Studios --- Shaders
+    Studios -->|"Non-Destructive Lua Overrides"| FlightDeck
+    FlightDeck -->|"Sourced by"| HyprUser
+    HyprUser -->|"Loaded by"| Hypr
 ```
 
 ---
